@@ -4,8 +4,12 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/user"
 	"strconv"
 )
+
+var uid_arg string
+var gid_arg string
 
 func main() {
 	err := realMain()
@@ -18,17 +22,46 @@ func main() {
 	os.Exit(0)
 }
 
+func get_uid(user_name string) error {
+	u, er := user.Lookup(user_name)
+	if er != nil {
+		return er
+	}
+	uid_arg = u.Uid
+	return er
+}
+
+func get_gid(group_name string) error {
+	g, er := user.LookupGroup(group_name)
+	if er != nil {
+		return er
+	}
+	gid_arg = g.Gid
+	return er
+}
+
 func realMain() error {
+	var err error
 	if len(os.Args) != 6 {
 		return nil
 	}
 
-	// savetofile <mode> <filepath> <uid> <gid> <data>
+	// savetofile <mode> <filepath> <username> <groupname> <data>
 	mode := os.Args[1]
 	path := os.Args[2]
-	uid_arg := os.Args[3]
-	gid_arg := os.Args[4]
+	user_name := os.Args[3]
+	group_name := os.Args[4]
 	data := os.Args[5]
+
+	err = get_uid(user_name)
+	if err != nil {
+		return err
+	}
+
+	err = get_gid(group_name)
+	if err != nil {
+		return err
+	}
 
 	uid, err := strconv.Atoi(uid_arg)
 	if err != nil {
@@ -91,3 +124,4 @@ func realMain() error {
 
 	return nil
 }
+
